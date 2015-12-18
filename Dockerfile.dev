@@ -1,0 +1,10 @@
+FROM gliderlabs/alpine:3.2
+
+ENV GOPATH /go
+RUN apk-install go git mercurial
+COPY . /go/src/github.com/ekristen/queryable
+WORKDIR /go/src/github.com/ekristen/queryable
+RUN go get
+CMD go get \
+	&& go build -ldflags "-X main.Version dev -X main.Build dev" -o /bin/queryable \
+	&& exec /bin/queryable
