@@ -227,6 +227,16 @@ func run(domain string, port int, recursors []string, hostIPstr string, noDNSRes
 		return err
 	}
 
+	if len(recursors) == 0 {
+		log.Println("No recursors specified, parsing /etc/resolv.conf")
+		nameservers := resolver.GetNameservers()
+
+		for _, nameserver := range nameservers {
+			recursors = append([]string{nameserver}, recursors...)
+			log.Printf("Adding nameserver %s to recursors list", nameserver)
+		}
+	}
+
 	dnsResolver.Port = port
 	dnsResolver.Recursors = recursors
 

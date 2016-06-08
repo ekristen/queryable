@@ -44,6 +44,20 @@ type dnsResolver struct {
 	stopped   chan struct{}
 }
 
+var defaultNS = []string{"127.0.0.1", "::1"}
+
+type dnsConfig struct {
+	servers    []string // servers to use
+	search     []string // suffixes to append to local name
+	ndots      int      // number of dots in name to trigger absolute lookup
+	timeout    int      // seconds before giving up on packet
+	attempts   int      // lost packets before giving up on server
+	rotate     bool     // round robin among servers
+	unknownOpt bool     // anything unknown was encountered
+	lookup     []string // OpenBSD top-level database "lookup" order
+	err        error    // any error that occurs during open of resolv.conf
+}
+
 func NewResolver() (*dnsResolver, error) {
 	return &dnsResolver{
 		Port:      53,
@@ -264,6 +278,11 @@ func (r *dnsResolver) findReverse(address string) (hosts []string) {
 		}
 	}
 	return
+}
+
+func GetNameservers() (servers []string) {
+	config, _ := dns.ClientConfigFromFile("/etc/resolv.conf")
+	return config.Servers
 }
 
 func dnsAddressRecord(query *dns.Msg, name string, addrs []net.IP) *dns.Msg {
